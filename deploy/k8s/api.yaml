@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: fixflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: api }
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      containers:
+        - name: api
+          image: fixflow-api:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 3000 }
+          env:
+            - name: PORT
+              value: "3000"
+            - name: UPLOAD_DIR
+              value: /app/uploads
+            - name: FRONTEND_ORIGIN
+              valueFrom:
+                configMapKeyRef: { name: fixflow-config, key: FRONTEND_ORIGIN }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: fixflow-db-secret, key: POSTGRES_PASSWORD }
+            - name: DATABASE_URL
+              value: postgres://fixflow:$(POSTGRES_PASSWORD)@postgres:5432/fixflow
+          volumeMounts:
+            - { name: uploads, mountPath: /app/uploads }
+          startupProbe:
+            httpGet: { path: /api/health, port: http }
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet: { path: /api/health, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /api/health, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 1, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: uploads
+          persistentVolumeClaim: { claimName: uploaded-photos }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: fixflow
+spec:
+  selector: { app: api }
+  ports:
+    - { name: http, port: 3000, targetPort: http }

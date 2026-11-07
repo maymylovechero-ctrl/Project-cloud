@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: fixflow
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploaded-photos
+  namespace: fixflow
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 5Gi

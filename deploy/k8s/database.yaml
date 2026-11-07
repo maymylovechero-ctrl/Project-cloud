@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: fixflow
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - { name: postgres, containerPort: 5432 }
+          envFrom:
+            - configMapRef: { name: fixflow-config }
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: fixflow-db-secret, key: POSTGRES_PASSWORD }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+            - { name: schema, mountPath: /docker-entrypoint-initdb.d/001-schema.sql, subPath: schema.sql, readOnly: true }
+          readinessProbe:
+            exec: { command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"] }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec: { command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"] }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 1Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: postgres-data }
+        - name: schema
+          configMap: { name: fixflow-config, items: [{ key: schema.sql, path: schema.sql }] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: fixflow
+spec:
+  selector: { app: postgres }
+  ports:
+    - { name: postgres, port: 5432, targetPort: postgres }

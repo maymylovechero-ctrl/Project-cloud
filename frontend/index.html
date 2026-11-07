@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb"><title>FixFlow | ระบบแจ้งซ่อมมหาวิทยาลัย</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="FixFlow หน้าแรก"><span class="brand-icon">F<span>+</span></span><span class="brand-name">Fix<span>Flow</span><small>UNIVERSITY SERVICE</small></span></a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="side-nav" aria-label="เมนูหลัก">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">◫</span> ภาพรวม <kbd>01</kbd></button>
+        <button class="nav-item" data-view="request"><span class="nav-icon">＋</span> แจ้งซ่อมใหม่ <kbd>02</kbd></button>
+        <button class="nav-item" data-view="tickets"><span class="nav-icon">▤</span> รายการแจ้งซ่อม <kbd>03</kbd></button>
+      </nav>
+      <div class="sidebar-bottom"><div class="help-card"><span class="help-orb">?</span><b>ต้องการความช่วยเหลือ?</b><p>แจ้งปัญหาการใช้งานระบบกับผู้ดูแล</p><a href="mailto:it-support@university.ac.th">ติดต่อฝ่ายไอที ↗</a></div><div class="sidebar-foot"><span class="status-dot"></span> ระบบทำงานปกติ <span class="version">v1.0</span></div></div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar"><div class="breadcrumbs">บริการอาคารสถานที่ <span>/</span> <b id="breadcrumb">ภาพรวม</b></div><div class="top-actions"><span class="top-date" id="today"></span><span class="divider"></span><button class="avatar-button" title="ผู้ใช้ปัจจุบัน">ผ</button></div></header>
+      <div class="content-wrap">
+        <section class="view active" id="view-dashboard">
+          <div class="page-heading"><div><div class="eyebrow">SERVICE OVERVIEW <span>•</span> ภาคเรียนที่ 1 / 2569</div><h1>สวัสดี, <span>ยินดีต้อนรับ</span></h1><p>ติดตามและจัดการงานซ่อมบำรุงในมหาวิทยาลัยของคุณ</p></div><button class="button button-primary" data-go="request"><span>＋</span> แจ้งซ่อมใหม่</button></div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-top"><span>งานทั้งหมด</span><span class="stat-icon blue">▤</span></div><div class="stat-bottom"><strong id="stat-total">—</strong><span class="stat-note">รายการในระบบ</span></div><div class="stat-accent blue-accent"></div></article>
+            <article class="stat-card"><div class="stat-top"><span>รอดำเนินการ</span><span class="stat-icon amber">◷</span></div><div class="stat-bottom"><strong id="stat-pending">—</strong><span class="stat-note">รอมอบหมายช่าง</span></div><div class="stat-accent amber-accent"></div></article>
+            <article class="stat-card"><div class="stat-top"><span>กำลังซ่อม</span><span class="stat-icon violet">⚒</span></div><div class="stat-bottom"><strong id="stat-progress">—</strong><span class="stat-note">อยู่ระหว่างดำเนินการ</span></div><div class="stat-accent violet-accent"></div></article>
+            <article class="stat-card"><div class="stat-top"><span>เสร็จแล้ว</span><span class="stat-icon green">✓</span></div><div class="stat-bottom"><strong id="stat-completed">—</strong><span class="stat-note">ปิดงานเรียบร้อย</span></div><div class="stat-accent green-accent"></div></article>
+          </div>
+          <div class="dashboard-grid">
+            <section class="panel request-panel"><div class="panel-heading"><div><h2>รายการล่าสุด</h2><p>คำขอแจ้งซ่อมล่าสุดในระบบ</p></div><button class="text-button" data-go="tickets">ดูทั้งหมด <span>→</span></button></div><div id="recent-list" class="recent-list"><div class="loading-state">กำลังโหลดรายการ...</div></div></section>
+            <section class="panel category-panel"><div class="panel-heading"><div><h2>ประเภทงานซ่อม</h2><p>หมวดหมู่บริการที่รองรับ</p></div><span class="panel-more">•••</span></div><div id="category-list" class="category-list"></div><div class="category-footer"><span class="category-mark"></span> รองรับการแจ้งซ่อม 4 หมวดหมู่</div></section>
+          </div>
+          <div class="bottom-note"><div class="note-icon">✦</div><div><b>ศูนย์กลางบริการซ่อมบำรุง</b><span>แจ้งปัญหา ติดตามสถานะ และประเมินคุณภาพการให้บริการได้ในที่เดียว</span></div><button data-go="request" class="note-link">เริ่มแจ้งซ่อม <span>→</span></button></div>
+        </section>
+
+        <section class="view" id="view-request">
+          <div class="page-heading"><div><div class="eyebrow">NEW SERVICE REQUEST</div><h1>แจ้งซ่อม<span>ใหม่</span></h1><p>กรอกรายละเอียดปัญหาเพื่อให้ทีมช่างเข้าช่วยเหลือ</p></div></div>
+          <form id="request-form" class="panel form-panel">
+            <div class="form-section-title"><span class="section-number">01</span><div><b>ข้อมูลผู้แจ้งและสถานที่</b><small>ระบุข้อมูลสำหรับติดต่อกลับและเข้าตรวจสอบ</small></div></div>
+            <div class="form-grid"><label>ชื่อผู้แจ้ง <em>*</em><input name="reporterName" placeholder="เช่น กัญญา ใจดี" maxlength="120" required></label><label>สถานที่ / ห้อง <em>*</em><input name="location" placeholder="เช่น อาคาร A ห้อง 301" maxlength="180" required></label></div>
+            <div class="form-section-title section-spaced"><span class="section-number">02</span><div><b>รายละเอียดปัญหา</b><small>เลือกหมวดหมู่และอธิบายอาการที่พบ</small></div></div>
+            <div class="form-grid"><label>ประเภทอุปกรณ์ <em>*</em><select name="category" required><option value="">เลือกหมวดหมู่งานซ่อม</option><option value="computer_network">คอมพิวเตอร์และเครือข่าย</option><option value="air_conditioning">เครื่องปรับอากาศ</option><option value="presentation">อุปกรณ์นำเสนอ</option><option value="general">อุปกรณ์ทั่วไป</option></select></label><label>หัวข้อปัญหา <em>*</em><input name="title" placeholder="สรุปปัญหาสั้น ๆ" maxlength="180" required></label></div>
+            <label class="full-label">รายละเอียดเพิ่มเติม <em>*</em><textarea name="description" rows="4" placeholder="อธิบายอาการที่พบ เวลาที่เริ่มเกิดปัญหา หรือข้อมูลที่ช่วยให้ช่างตรวจสอบได้เร็วขึ้น" maxlength="3000" required></textarea></label>
+            <label class="upload-box" for="photo"><span class="upload-icon">↥</span><span><b>แนบรูปภาพประกอบ <small>(ไม่บังคับ)</small></b><small>ไฟล์ JPG, PNG หรือ WEBP ขนาดไม่เกิน 5 MB</small></span><span class="upload-action">เลือกไฟล์</span><input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label><div id="file-name" class="file-name"></div>
+            <div id="form-error" class="form-message error-message" role="alert"></div><div class="form-actions"><span>ช่องที่มี <em>*</em> จำเป็นต้องกรอก</span><button type="submit" class="button button-primary" id="submit-request">ส่งคำขอแจ้งซ่อม <span>→</span></button></div>
+          </form>
+        </section>
+
+        <section class="view" id="view-tickets">
+          <div class="page-heading"><div><div class="eyebrow">SERVICE REQUESTS</div><h1>รายการแจ้งซ่อม</h1><p>จัดการ มอบหมายช่าง และติดตามความคืบหน้าของทุกงาน</p></div><button class="button button-primary" data-go="request"><span>＋</span> แจ้งซ่อมใหม่</button></div>
+          <div class="filter-row"><div class="filter-tabs"><button class="filter-tab selected" data-filter="all">ทั้งหมด <span id="count-all">0</span></button><button class="filter-tab" data-filter="pending">รอมอบหมาย <span id="count-pending">0</span></button><button class="filter-tab" data-filter="assigned">รับงานแล้ว <span id="count-assigned">0</span></button><button class="filter-tab" data-filter="in_progress">กำลังซ่อม <span id="count-progress">0</span></button><button class="filter-tab" data-filter="completed">เสร็จแล้ว <span id="count-completed">0</span></button></div><button class="refresh-button" id="refresh">↻ <span>รีเฟรช</span></button></div>
+          <div id="ticket-list" class="ticket-list"><div class="loading-state">กำลังโหลดรายการ...</div></div>
+        </section>
+      </div>
+      <footer class="main-footer"><span>© 2026 FixFlow <i>•</i> University Facility Services</span><span>ออกแบบเพื่อการบริการที่ดียิ่งขึ้น <b>✦</b></span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
