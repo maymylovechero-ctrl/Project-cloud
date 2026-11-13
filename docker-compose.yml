@@ -37,12 +37,27 @@ services:
       start_period: 15s
     restart: unless-stopped
 
+  files:
+    build: ./file-server
+    volumes:
+      - uploaded_photos:/usr/share/nginx/html/uploads:ro
+    expose:
+      - "8081"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8081/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   web:
     build: ./frontend
     ports:
       - "8080:80"
     depends_on:
       api:
+        condition: service_healthy
+      files:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/health"]

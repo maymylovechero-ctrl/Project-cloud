@@ -14,26 +14,35 @@ const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
 const categories = new Set(['computer_network', 'air_conditioning', 'presentation', 'general']);
 const technicians = ['ช่างคอมพิวเตอร์', 'ช่างระบบเครือข่าย', 'ช่างอาคาร'];
 const statuses = new Set(['assigned', 'in_progress', 'completed']);
+const fileExtensions = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'application/pdf': '.pdf' };
 
 fs.mkdirSync(uploadDir, { recursive: true });
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || 'http://localhost:8080' }));
 app.use(express.json({ limit: '1mb' }));
-app.use('/uploads', express.static(uploadDir, { maxAge: '1d', immutable: true }));
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (_req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname).toLowerCase()}`)
+  filename: (_req, file, cb) => cb(null, `${crypto.randomUUID()}${fileExtensions[file.mimetype] || '.bin'}`)
 });
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024, files: 1 },
   fileFilter: (_req, file, cb) => {
-    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) return cb(null, true);
-    const error = new Error('อนุญาตเฉพาะไฟล์ JPG, PNG หรือ WEBP');
+    if (Object.hasOwn(fileExtensions, file.mimetype)) return cb(null, true);
+    const error = new Error('อนุญาตเฉพาะไฟล์ JPG, PNG, WEBP หรือ PDF');
     error.statusCode = 400;
     cb(error);
   }
 });
+
+function hasValidFileSignature(file) {
+  const bytes = fs.readFileSync(file.path);
+  if (file.mimetype === 'image/jpeg') return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (file.mimetype === 'image/png') return bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  if (file.mimetype === 'image/webp') return bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP';
+  if (file.mimetype === 'application/pdf') return bytes.toString('ascii', 0, 5) === '%PDF-';
+  return false;
+}
 
 const publicRequest = (row) => ({
   id: row.id, reporterName: row.reporter_name, location: row.location, category: row.category,
@@ -66,6 +75,17 @@ app.post('/api/requests', upload.single('photo'), async (req, res, next) => {
     return res.status(400).json({ error: 'กรุณากรอกชื่อ สถานที่ หมวดหมู่ หัวข้อ และรายละเอียดให้ครบ' });
   }
   if (!categories.has(category)) return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' });
+  if (req.file) {
+    try {
+      if (!hasValidFileSignature(req.file)) {
+        await fs.promises.unlink(req.file.path).catch(() => {});
+        return res.status(400).json({ error: 'เนื้อหาไฟล์ไม่ตรงกับชนิดไฟล์ที่อนุญาต' });
+      }
+    } catch (error) {
+      await fs.promises.unlink(req.file.path).catch(() => {});
+      return next(error);
+    }
+  }
   try {
     const photoPath = req.file ? `/uploads/${req.file.filename}` : null;
     const { rows } = await pool.query(
@@ -127,7 +147,7 @@ app.post('/api/requests/:id/rating', async (req, res, next) => {
 });
 
 app.use((error, _req, res, _next) => {
-  if (error instanceof multer.MulterError) return res.status(400).json({ error: error.code === 'LIMIT_FILE_SIZE' ? 'รูปต้องมีขนาดไม่เกิน 5 MB' : 'อัปโหลดรูปไม่สำเร็จ' });
+  if (error instanceof multer.MulterError) return res.status(400).json({ error: error.code === 'LIMIT_FILE_SIZE' ? 'ไฟล์แนบต้องมีขนาดไม่เกิน 5 MB' : 'อัปโหลดไฟล์ไม่สำเร็จ' });
   console.error(error);
   res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่' });
 });

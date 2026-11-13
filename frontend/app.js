@@ -36,6 +36,16 @@ function showView(name) {
 
 function statusBadge(status) { return `<span class="status-badge status-${esc(status)}">${esc(statusNames[status] || status)}</span>`; }
 
+function attachmentMarkup(item) {
+  if (!item.photoUrl) return '';
+  const url = esc(item.photoUrl);
+  const fileName = item.photoUrl.split('/').pop() || 'ไฟล์แนบ';
+  if (fileName.toLowerCase().endsWith('.pdf')) {
+    return `<a class="ticket-attachment" href="${url}" target="_blank" rel="noopener">📄 เปิดเอกสาร PDF</a>`;
+  }
+  return `<a href="${url}" target="_blank" rel="noopener"><img class="ticket-photo" src="${url}" alt="รูปประกอบคำขอ ${esc(requestCode(item.id))}"></a>`;
+}
+
 function renderDashboard() {
   const total = requests.length;
   $('#stat-total').textContent = total;
@@ -59,7 +69,7 @@ function ticketCard(item) {
       <button class="control-button subtle" data-action="assign" data-id="${item.id}" ${item.status === 'in_progress' ? 'disabled' : ''}>บันทึกผู้รับงาน</button>
       ${item.technician ? `<label class="control-field">อัปเดตสถานะ<select data-status="${item.id}"><option value="assigned" ${item.status === 'assigned' ? 'selected' : ''}>รับงานแล้ว</option><option value="in_progress" ${item.status === 'in_progress' ? 'selected' : ''}>กำลังซ่อม</option><option value="completed">เสร็จแล้ว</option></select></label>${item.status !== 'completed' ? `<input aria-label="ผลการซ่อม" data-resolution="${item.id}" placeholder="ผลการซ่อม (ต้องกรอกเมื่อปิดงาน)" value="${esc(item.resolution || '')}"><button class="control-button" data-action="status" data-id="${item.id}">บันทึกสถานะ</button>` : ''}` : ''}
     </div>` : `<div class="ticket-controls"><span class="control-field">ช่างผู้รับผิดชอบ <b>${esc(item.technician || '-')}</b></span><span class="control-field">ผลการซ่อม <b>${esc(item.resolution || '-')}</b></span>${item.rating ? `<span class="control-field">คะแนน <b class="rating-stars">${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}</b></span>` : `<label class="control-field">ประเมินงาน<select data-rating="${item.id}"><option value="">เลือกคะแนน</option><option value="5">5 - ดีมาก</option><option value="4">4 - ดี</option><option value="3">3 - ปานกลาง</option><option value="2">2 - ควรปรับปรุง</option><option value="1">1 - ควรปรับปรุงมาก</option></select></label><button class="control-button" data-action="rate" data-id="${item.id}">ส่งคะแนน</button>`}</div>`;
-  return `<article class="ticket-card"><div class="ticket-main"><span class="ticket-symbol">${categoryIcons[item.category] || '⚙'}</span><div class="ticket-content"><div class="ticket-heading"><h3>${esc(item.title)}</h3><span class="ticket-id">${esc(requestCode(item.id))}</span>${statusBadge(item.status)}</div><div class="ticket-meta"><span>${esc(categoryNames[item.category] || item.category)}</span><span>•</span><span>${esc(item.location)}</span><span>•</span><span>ผู้แจ้ง ${esc(item.reporterName)}</span><span>•</span><span>${dateText(item.createdAt)}</span>${item.technician ? `<span>•</span><span>ช่าง ${esc(item.technician)}</span>` : ''}</div><p class="ticket-description">${esc(item.description)}</p>${item.photoUrl ? `<a href="${esc(item.photoUrl)}" target="_blank" rel="noopener"><img class="ticket-photo" src="${esc(item.photoUrl)}" alt="รูปประกอบคำขอ ${esc(requestCode(item.id))}"></a>` : ''}</div></div>${controls}</article>`;
+  return `<article class="ticket-card"><div class="ticket-main"><span class="ticket-symbol">${categoryIcons[item.category] || '⚙'}</span><div class="ticket-content"><div class="ticket-heading"><h3>${esc(item.title)}</h3><span class="ticket-id">${esc(requestCode(item.id))}</span>${statusBadge(item.status)}</div><div class="ticket-meta"><span>${esc(categoryNames[item.category] || item.category)}</span><span>•</span><span>${esc(item.location)}</span><span>•</span><span>ผู้แจ้ง ${esc(item.reporterName)}</span><span>•</span><span>${dateText(item.createdAt)}</span>${item.technician ? `<span>•</span><span>ช่าง ${esc(item.technician)}</span>` : ''}</div><p class="ticket-description">${esc(item.description)}</p>${attachmentMarkup(item)}</div></div>${controls}</article>`;
 }
 
 function renderTickets() {
@@ -97,7 +107,7 @@ async function onRequestSubmit(event) {
   const button = $('#submit-request');
   errorBox.style.display = 'none';
   const file = $('#photo').files[0];
-  if (file && file.size > 5 * 1024 * 1024) { errorBox.textContent = 'รูปต้องมีขนาดไม่เกิน 5 MB'; errorBox.style.display = 'block'; return; }
+  if (file && file.size > 5 * 1024 * 1024) { errorBox.textContent = 'ไฟล์แนบต้องมีขนาดไม่เกิน 5 MB'; errorBox.style.display = 'block'; return; }
   button.disabled = true;
   button.textContent = 'กำลังส่งคำขอ...';
   try {
